@@ -11,8 +11,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-
-
+    useLibrary 'org.apache.http.legacy'
     buildTypes {
         release {
             minifyEnabled false
@@ -31,6 +30,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:design:25.3.0'
-    compile 'com.google.cloud:google-cloud-vision:0.25.0-beta'
     testCompile 'junit:junit:4.12'
+    compile group: 'org.apache.httpcomponents' , name: 'httpclient-android' , version: '4.3.5.1'
 }
