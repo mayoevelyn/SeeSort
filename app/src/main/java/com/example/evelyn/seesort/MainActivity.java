@@ -20,6 +20,7 @@ import static com.example.evelyn.seesort.R.id.takePic;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Scanner;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -32,13 +33,17 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import android.os.AsyncTask;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     ImageView takePic;
+    String[] compostTags = {"banana", "bowl", "cake", "chocolate", "different", "eaten", "filled", "food", "fruit", "holding", "indoor", "orange",
+                        "piece", "plate", "salad", "sitting", "slice", "sliced"};
+    String[] recycleTags = {"aluminum", "batteries", "bottle", "computer", "electronic", "glass", "mixed paper", "plastic", "shredded"};
 
-    public static final String subscriptionKey = "00ca1b7a85b64189ad1bc3abd7b19eea";
+    public static final String subscriptionKey = "c265a7549014410daffebda580bb22f1";
 
     // Replace or verify the region.
     //
@@ -54,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     class RetrieveFeedTask extends AsyncTask<String, Void, String> {
 
         private Exception exception;
+        public String readableJSON;
 
         protected String doInBackground(String... params) {
             //Don't do this (massive Try/catch)
@@ -86,8 +92,7 @@ public class MainActivity extends AppCompatActivity {
                     // Format and display the JSON response.
                     String jsonString = EntityUtils.toString(entity);
                     JSONObject json = new JSONObject(jsonString);
-                    System.out.println("REST Response:\n");
-                    System.out.println(json.toString(2));
+                    readableJSON = json.toString(2);
                 }
                 return null;
 
@@ -113,16 +118,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
-        new RetrieveFeedTask().execute();
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
         Button picButton = (Button) findViewById(R.id.picButton);
         takePic = (ImageView) findViewById(R.id.takePic);
 
@@ -151,8 +146,46 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extra = data.getExtras();
+            new RetrieveFeedTask().execute();
+
+            String jsonData = "something"; //something will be replaced with a string full of json data
+
             Bitmap photo = (Bitmap) extra.get("data");
             takePic.setImageBitmap(photo);
+
+            Scanner input = new Scanner(jsonData);
+            String check = input.nextLine();
+            while (!input.hasNextLine() && !check.contains("Description")) {
+                check = input.nextLine();
+            }
+            input.nextLine(); //guarunteed to exist. Discards "tags" line
+            check = input.nextLine(); //assumed to exist because there is a description, therefore there are tags
+            String decision = makeDecision(check, input);
+            Toast present = Toast.makeText(getApplicationContext(), decision, Toast.LENGTH_LONG);
+            present.show();
+        }
+    }
+
+    public String makeDecision(String check, Scanner input) {
+        if (!input.hasNextLine() || check.contains("]")) {
+            return "trash";
+        } else {
+            check = check.substring(1, check.length() - 1);
+
+            // check to see if the tag is in the list of designated recycle tags
+            for (int i = 0; i < recycleTags.length; i++) {
+                if (check.equals(recycleTags[i])) {
+                    return "recycle";
+                }
+            }
+            // check to see if the tag is in the list of designated compost tags
+            for (int i = 0; i < compostTags.length; i++) {
+                if (check.equals(compostTags[i])) {
+                    return "compost";
+                }
+            }
+            check = input.nextLine();
+            return makeDecision(check, input);
         }
     }
 
