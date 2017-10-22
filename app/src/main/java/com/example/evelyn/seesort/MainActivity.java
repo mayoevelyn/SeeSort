@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
     class RetrieveFeedTask extends AsyncTask<String, Void, String> {
 
         private Exception exception;
-        public String readableJSON;
+        private String readableJSON;
 
         protected String doInBackground(String... params) {
             //Don't do this (massive Try/catch)
